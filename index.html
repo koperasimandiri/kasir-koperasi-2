@@ -40,6 +40,7 @@
             display: inline-block;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+        .deleted-row { opacity: 0.5; text-decoration: line-through; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
@@ -294,7 +295,6 @@
                     </div>
                     <div class="flex flex-wrap gap-2 w-full sm:w-auto">
                         <select id="filter-laporan-kasir" class="p-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"></select>
-                        <!-- RENTANG TANGGAL -->
                         <div class="flex items-center gap-1">
                             <input type="date" id="filter-laporan-tgl-awal" class="p-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Dari" />
                             <span class="text-slate-400 text-xs">s/d</span>
@@ -317,6 +317,7 @@
                                     <th class="p-3 font-semibold">Metode</th>
                                     <th class="p-3 text-right font-semibold">Total Belanja</th>
                                     <th class="p-3 font-semibold">Rincian Barang</th>
+                                    <th class="p-3 text-center font-semibold">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody id="table-laporan" class="divide-y divide-slate-100 text-slate-700"></tbody>
@@ -493,6 +494,31 @@
         if (tanggalAkhir && tgl > tanggalAkhir) return false;
         
         return true;
+    }
+
+    // ============================================================
+    // FUNGSI MANAJEMEN DELETED IDS
+    // ============================================================
+    function markAsDeleted(dataId, type) {
+        if (!state.deletedIds) state.deletedIds = [];
+        const deletedKey = `${type}_${dataId}`;
+        if (!state.deletedIds.includes(deletedKey)) {
+            state.deletedIds.push(deletedKey);
+        }
+        saveState();
+    }
+
+    function isDeleted(dataId, type) {
+        if (!state.deletedIds) return false;
+        const deletedKey = `${type}_${dataId}`;
+        return state.deletedIds.includes(deletedKey);
+    }
+
+    function removeDeletedMark(dataId, type) {
+        if (!state.deletedIds) return;
+        const deletedKey = `${type}_${dataId}`;
+        state.deletedIds = state.deletedIds.filter(id => id !== deletedKey);
+        saveState();
     }
 
     // ============================================================
@@ -758,6 +784,48 @@
     }
 
     // ============================================================
+    // MERGE DATA CLOUD-LOCAL
+    // ============================================================
+    function mergeDataCloudLocal(localList, cloudList, type) {
+        // Filter data cloud yang tidak terhapus
+        const activeCloud = (cloudList || []).filter(item => {
+            return !isDeleted(item.id, type);
+        });
+        
+        // Buat map dari data cloud yang aktif
+        const mergedMap = new Map(activeCloud.map(item => [item.id, { ...item }]));
+        
+        // Tambahkan data lokal
+        (localList || []).forEach(localItem => {
+            if (isDeleted(localItem.id, type)) return;
+            
+            if (localItem._dirty) {
+                const cleanItem = { ...localItem };
+                delete cleanItem._dirty;
+                mergedMap.set(localItem.id, cleanItem);
+            } else if (!mergedMap.has(localItem.id)) {
+                mergedMap.set(localItem.id, { ...localItem });
+            }
+        });
+        
+        return Array.from(mergedMap.values());
+    }
+
+    function mergeKasirCloudLocal(localKasir, cloudKasir) {
+        if (!cloudKasir || cloudKasir.length === 0) {
+            return localKasir || [];
+        }
+
+        return cloudKasir.map(cloudK => {
+            const localK = (localKasir || []).find(l => (l.nama || l) === (cloudK.nama || cloudK));
+            if (localK && localK._dirty) {
+                return { ...cloudK, password: localK.password, _dirty: true };
+            }
+            return { ...cloudK };
+        });
+    }
+
+    // ============================================================
     // RENDER ALL
     // ============================================================
     function renderAll() {
@@ -909,14 +977,14 @@
     }
     
     async function hapusAnggota(id) {
-        const confirmed = await showCustomConfirm('Apakah Anda yakin ingin menghapus Anggota ini? Data akan segera disinkronkan ke Cloud.', 'Hapus Anggota');
+        const confirmed = await showCustomConfirm('Apakah Anda yakin ingin menghapus Anggota ini? Data akan dihapus permanen dari Cloud.', 'Hapus Anggota');
         if (confirmed) {
             state.anggota = state.anggota.filter(a => a.id !== id);
-            state.deletedIds.push(id); 
+            markAsDeleted(id, 'anggota');
             saveState();
             renderAll();
             showToast('Anggota berhasil dihapus');
-            syncData(); 
+            syncData();
         }
     }
 
@@ -999,10 +1067,10 @@
     }
     
     async function hapusBarang(id) {
-        const confirmed = await showCustomConfirm('Apakah Anda yakin ingin menghapus barang ini?', 'Hapus Barang');
+        const confirmed = await showCustomConfirm('Apakah Anda yakin ingin menghapus barang ini? Data akan dihapus permanen dari Cloud.', 'Hapus Barang');
         if (confirmed) {
             state.barang = state.barang.filter(b => b.id !== id);
-            state.deletedIds.push(id); 
+            markAsDeleted(id, 'barang');
             saveState();
             renderAll();
             showToast('Barang berhasil dihapus');
@@ -1315,7 +1383,7 @@
     }
 
     // ============================================================
-    // LAPORAN (DENGAN RENTANG TANGGAL)
+    // LAPORAN (DENGAN RENTANG TANGGAL & TOMBOL HAPUS)
     // ============================================================
     function renderLaporan() {
         const filterKasir = document.getElementById('filter-laporan-kasir');
@@ -1364,7 +1432,7 @@
         }
         
         if (filtered.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-400">Tidak ada transaksi ditemukan</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-slate-400">Tidak ada transaksi ditemukan</td></tr>';
             totalDiv.innerHTML = '';
             return;
         }
@@ -1400,13 +1468,36 @@
                 <td class="p-4 text-slate-500">${t.kasir || 'Admin'}</td>
                 <td class="p-4">${metodeBadge}</td>
                 <td class="p-4 text-right font-bold text-emerald-700">${formatRupiah(total)}</td>
-                <td class="p-4 text-xs text-slate-500 font-mono">${items.map(i => i.nama + ' (x' + i.qty + ')').join(', ')}</td>`;
+                <td class="p-4 text-xs text-slate-500 font-mono">${items.map(i => i.nama + ' (x' + i.qty + ')').join(', ')}</td>
+                <td class="p-4 text-center">
+                    <button onclick="hapusTransaksi('${t.id}')" class="px-2.5 py-1 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-md text-xs font-semibold transition">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </td>`;
             tbody.appendChild(tr);
         });
         
         totalDiv.innerHTML = `Total Keseluruhan: ${formatRupiah(grandTotal)}`;
     }
 
+    // ============================================================
+    // HAPUS TRANSAKSI
+    // ============================================================
+    async function hapusTransaksi(id) {
+        const confirmed = await showCustomConfirm('Apakah Anda yakin ingin menghapus transaksi ini? Data akan dihapus permanen dari Cloud.', 'Hapus Transaksi');
+        if (confirmed) {
+            state.transaksi = state.transaksi.filter(t => t.id !== id);
+            markAsDeleted(id, 'transaksi');
+            saveState();
+            renderAll();
+            showToast('Transaksi berhasil dihapus');
+            syncData();
+        }
+    }
+
+    // ============================================================
+    // EXPORT LAPORAN CSV
+    // ============================================================
     function exportLaporanCSV() {
         const filterKasir = document.getElementById('filter-laporan-kasir');
         const filterTglAwal = document.getElementById('filter-laporan-tgl-awal');
@@ -1475,39 +1566,6 @@
         });
     }
 
-    function mergeDataCloudLocal(localList, cloudList, deletedIds, key = 'id') {
-        const activeCloud = (cloudList || []).filter(item => !deletedIds.includes(item[key]));
-        const mergedMap = new Map(activeCloud.map(item => [item[key], { ...item }]));
-        
-        (localList || []).forEach(localItem => {
-            if (deletedIds.includes(localItem[key])) return; 
-            
-            if (localItem._dirty) {
-                const cleanItem = { ...localItem };
-                delete cleanItem._dirty; 
-                mergedMap.set(localItem[key], cleanItem);
-            } else if (!mergedMap.has(localItem[key])) {
-                mergedMap.set(localItem[key], { ...localItem });
-            }
-        });
-        
-        return Array.from(mergedMap.values());
-    }
-
-    function mergeKasirCloudLocal(localKasir, cloudKasir) {
-        if (!cloudKasir || cloudKasir.length === 0) {
-            return localKasir || [];
-        }
-
-        return cloudKasir.map(cloudK => {
-            const localK = (localKasir || []).find(l => (l.nama || l) === (cloudK.nama || cloudK));
-            if (localK && localK._dirty) {
-                return { ...cloudK, password: localK.password, _dirty: true };
-            }
-            return { ...cloudK };
-        });
-    }
-
     async function syncData() {
         const url = GOOGLE_SCRIPT_URL;
         if (!url || url.trim() === '') {
@@ -1545,49 +1603,59 @@
                 });
             }
 
-            const mergedAnggota = mergeDataCloudLocal(state.anggota, cloudData.anggota, state.deletedIds, 'id');
-            const mergedBarang = mergeDataCloudLocal(state.barang, cloudData.barang, state.deletedIds, 'id');
-            const mergedTransaksi = mergeDataCloudLocal(state.transaksi, cloudData.transaksi, state.deletedIds, 'id');
-            const mergedKasir = mergeKasirCloudLocal(state.kasir, cloudData.kasir); 
+            // Update deletedIds dari cloud
+            if (cloudData.deletedIds && Array.isArray(cloudData.deletedIds)) {
+                // Merge deletedIds dari cloud dan lokal
+                const cloudDeleted = cloudData.deletedIds.map(item => 
+                    typeof item === 'string' ? item : `${item.type || 'unknown'}_${item.id || item}`
+                );
+                
+                // Gabungkan dengan deletedIds lokal
+                const allDeleted = [...new Set([...state.deletedIds, ...cloudDeleted])];
+                state.deletedIds = allDeleted;
+            }
+
+            // Merge data
+            const mergedAnggota = mergeDataCloudLocal(state.anggota, cloudData.anggota, 'anggota');
+            const mergedBarang = mergeDataCloudLocal(state.barang, cloudData.barang, 'barang');
+            const mergedTransaksi = mergeDataCloudLocal(state.transaksi, cloudData.transaksi, 'transaksi');
+            const mergedKasir = mergeKasirCloudLocal(state.kasir, cloudData.kasir);
 
             state.anggota = mergedAnggota;
             state.barang = mergedBarang;
             state.transaksi = mergedTransaksi;
-            state.kasir = mergedKasir; 
+            state.kasir = mergedKasir;
             
-            state.anggota.forEach(a => a.saldo = Number(a.saldo || 0));
+            // Cleanup
+            state.anggota.forEach(a => {
+                a.saldo = Number(a.saldo || 0);
+                delete a._dirty;
+            });
+            
             state.barang.forEach(b => {
                 b.harga = Number(b.harga || 0);
                 b.stok = Number(b.stok || 0);
                 b.kategori = b.kategori || "Makanan/Minuman";
+                delete b._dirty;
             });
+            
             state.transaksi.forEach(t => {
                 t.total = Number(t.total || 0);
-                if (t.tanggal && t.tanggal.includes('T')) {
-                    try {
-                        const date = new Date(t.tanggal);
-                        if (!isNaN(date.getTime())) {
-                            t.tanggal = date.toISOString().split('T')[0];
-                        }
-                    } catch(e) {}
-                }
+                delete t._dirty;
             });
-
-            state.anggota.forEach(a => delete a._dirty);
-            state.barang.forEach(b => delete b._dirty);
-            state.transaksi.forEach(t => delete t._dirty);
-            state.kasir.forEach(k => delete k._dirty);
             
-            state.deletedIds = [];
+            state.kasir.forEach(k => delete k._dirty);
             
             saveState();
             renderAll();
 
+            // Kirim data ke cloud
             const payload = { 
                 anggota: state.anggota, 
                 barang: state.barang, 
                 transaksi: state.transaksi,
-                kasir: state.kasir 
+                kasir: state.kasir,
+                deletedIds: state.deletedIds
             };
             
             const postResp = await fetch(url, {
