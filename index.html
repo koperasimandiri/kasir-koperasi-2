@@ -528,22 +528,33 @@
     // FUNGSI FORMAT TANGGAL
     // ============================================================
     function formatTanggal(tanggal) {
-    // Jika tanggal sudah dalam format YYYY-MM-DD, return langsung
+    if (!tanggal) return '';
+    
+    // Jika sudah dalam format YYYY-MM-DD
     if (typeof tanggal === 'string' && tanggal.match(/^\d{4}-\d{2}-\d{2}$/)) {
         return tanggal;
     }
     
-    // Jika tanggal dalam format ISO dengan timezone
-    try {
-        const date = new Date(tanggal);
-        if (!isNaN(date.getTime())) {
-            // Gunakan timezone lokal
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
-    } catch(e) {}
+    // Jika dalam format ISO
+    if (typeof tanggal === 'string' && tanggal.includes('T')) {
+        try {
+            const date = new Date(tanggal);
+            if (!isNaN(date.getTime())) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+        } catch(e) {}
+    }
+    
+    // Jika sudah Date object
+    if (tanggal instanceof Date) {
+        const year = tanggal.getFullYear();
+        const month = String(tanggal.getMonth() + 1).padStart(2, '0');
+        const day = String(tanggal.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
     
     return tanggal;
     }
