@@ -41,6 +41,34 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
         .deleted-row { opacity: 0.5; text-decoration: line-through; }
+        
+        /* Style untuk hasil pencarian anggota */
+        #hasil-cari-anggota {
+            position: absolute;
+            width: calc(100% - 2px);
+            left: 1px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 50;
+        }
+        #hasil-cari-anggota::-webkit-scrollbar {
+            width: 4px;
+        }
+        #hasil-cari-anggota::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        #hasil-cari-anggota::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        #hasil-cari-anggota::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
@@ -178,10 +206,11 @@
                             <thead class="bg-slate-50 border-b border-slate-100 text-slate-600">
                                 <tr>
                                     <th class="p-4 font-semibold">ID</th>
-                                    <th class="p-4 font-semibold">Nama Anggota</th>
+                                    <th class="p-4 font-semibold">Nama</th>
+                                    <th class="p-4 font-semibold">Kelas</th>
                                     <th class="p-4 font-semibold">Alamat</th>
                                     <th class="p-4 font-semibold">No Telpon</th>
-                                    <th class="p-4 text-right font-semibold">Saldo Simpanan</th>
+                                    <th class="p-4 text-right font-semibold">Saldo</th>
                                     <th class="p-4 text-center font-semibold">Aksi</th>
                                 </tr>
                             </thead>
@@ -224,7 +253,6 @@
                     
                     <!-- AREA PEMILIHAN BARANG (KATALOG KARTU) -->
                     <div class="lg:col-span-2 space-y-4">
-                        <!-- PANEL FILTER & SEARCH -->
                         <div class="bg-white p-5 rounded-2xl border border-slate-150 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
                             <div class="relative flex-1 max-w-md">
                                 <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
@@ -251,9 +279,35 @@
                         <div class="bg-white p-5 rounded-2xl border border-slate-150 shadow-sm flex flex-col">
                             <h4 class="font-bold text-slate-850 mb-3 flex items-center gap-2 border-b pb-2"><i class="fa-solid fa-basket-shopping text-emerald-555"></i> Keranjang Belanja</h4>
                             
+                            <!-- PILIH ANGGOTA - DENGAN PENCARIAN -->
                             <div class="mb-4">
-                                <label class="block text-xs font-bold text-slate-500 mb-1">Anggota Koperasi</label>
-                                <select id="kasir-anggota" class="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"></select>
+                                <label class="block text-xs font-bold text-slate-500 mb-1">Cari Anggota</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                                        <i class="fa-solid fa-search"></i>
+                                    </span>
+                                    <input type="text" id="kasir-cari-anggota" 
+                                        placeholder="Ketik nama atau ID anggota..." 
+                                        class="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                        oninput="filterAnggota()"
+                                        autocomplete="off">
+                                </div>
+                                <!-- HASIL PENCARIAN -->
+                                <div id="hasil-cari-anggota" class="hidden mt-1 w-full bg-white border border-slate-200 rounded-lg shadow-lg max-h-48 overflow-y-auto"></div>
+                                <!-- ANGGOTA TERPILIH -->
+                                <div id="anggota-terpilih" class="mt-2 hidden">
+                                    <div class="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-lg p-2">
+                                        <div>
+                                            <span class="font-semibold text-slate-800" id="anggota-terpilih-nama">-</span>
+                                            <span class="text-xs text-slate-500 ml-2" id="anggota-terpilih-id">-</span>
+                                            <span class="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded ml-2" id="anggota-terpilih-kelas">-</span>
+                                        </div>
+                                        <button onclick="batalPilihAnggota()" class="text-rose-500 hover:text-rose-700">
+                                            <i class="fa-solid fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="kasir-anggota-id" value="">
                             </div>
 
                             <div id="cart-items" class="space-y-2 max-h-60 overflow-y-auto divide-y divide-slate-100 flex-1 min-h-[150px]"></div>
@@ -274,8 +328,7 @@
                                     <span id="cart-total" class="font-extrabold text-2xl text-emerald-600">Rp 0</span>
                                 </div>
                                 <button onclick="bayarTransaksi()" class="w-full py-3 bg-indigo-650 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold transition shadow-lg shadow-indigo-650/15">
-                                    <i class="fa-solid fa-check mr-2"></i>Selesaikan & Bayar
-                                </button>
+                                    <i class="fa-solid fa-check mr-2"></i>Selesaikan & Bayar                                </button>
                             </div>
                         </div>
 
@@ -315,7 +368,7 @@
                                     <th class="p-3 font-semibold">Anggota</th>
                                     <th class="p-3 font-semibold">Kasir</th>
                                     <th class="p-3 font-semibold">Metode</th>
-                                    <th class="p-3 text-right font-semibold">Total Belanja</th>
+                                    <th class="p-3 text-right font-semibold">Total</th>
                                     <th class="p-3 font-semibold">Rincian Barang</th>
                                     <th class="p-3 text-center font-semibold">Aksi</th>
                                 </tr>
@@ -360,6 +413,10 @@
             <div>
                 <label class="block text-xs font-semibold text-slate-500 mb-1">Nama Anggota</label>
                 <input type="text" id="modal-anggota-nama" class="w-full p-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1">Kelas</label>
+                <input type="text" id="modal-anggota-kelas" placeholder="Contoh: 7A, 8B, 9C" class="w-full p-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
             <div>
                 <label class="block text-xs font-semibold text-slate-500 mb-1">Alamat Rumah</label>
@@ -446,7 +503,7 @@
     // ============================================================
     // KONFIGURASI WEB APP GOOGLE SHEETS
     // ============================================================
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxIgWup8N1SXpWfx4e_dXSBlRTYoAB4ThODTS-eEXhRYH5gG-6tKoB3WVw_eb2v2WWpxA/exec";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50y4mXDLvpAarUjYdYrsgdVaqFVB4_19IUPbNA2zk5gz-BJvYuEaZ0WOScZ5v8jVemg/exec";
 
     // ============================================================
     // LOCAL STATE MANAGEMENT
@@ -464,6 +521,7 @@
     let cart = [];
     let chart = null;
     let isSyncing = false;
+    let anggotaTerpilih = null;
 
     // ============================================================
     // FUNGSI FORMAT TANGGAL
@@ -548,8 +606,9 @@
         
         if (state.anggota.length === 0 && state.barang.length === 0 && state.kasir.length === 0) {
             state.anggota = [
-                { id: "A001", nama: "Budi Santoso", alamat: "Jl. Merdeka 10", no_telp: "08123456789", saldo: 500000 },
-                { id: "A002", nama: "Siti Aminah", alamat: "Jl. Sudirman 5", no_telp: "08129876543", saldo: 750000 }
+                { id: "A001", nama: "Budi Santoso", alamat: "Jl. Merdeka 10", no_telp: "08123456789", saldo: 500000, kelas: "7A" },
+                { id: "A002", nama: "Siti Aminah", alamat: "Jl. Sudirman 5", no_telp: "08129876543", saldo: 750000, kelas: "8B" },
+                { id: "A003", nama: "Ahmad Rizki", alamat: "Jl. Diponegoro 3", no_telp: "08123456788", saldo: 300000, kelas: "9C" }
             ];
             state.barang = [
                 { id: "B001", nama: "Beras 5kg", harga: 75000, stok: 50, kategori: "Makanan/Minuman" },
@@ -621,6 +680,80 @@
             okBtn.onclick = () => cleanup(true);
             cancelBtn.onclick = () => cleanup(false);
         });
+    }
+
+    // ============================================================
+    // FUNGSI PENCARIAN ANGGOTA
+    // ============================================================
+    function filterAnggota() {
+        const input = document.getElementById('kasir-cari-anggota');
+        const hasilDiv = document.getElementById('hasil-cari-anggota');
+        const query = input.value.toLowerCase().trim();
+        
+        if (!query) {
+            hasilDiv.classList.add('hidden');
+            hasilDiv.innerHTML = '';
+            return;
+        }
+        
+        const filtered = state.anggota.filter(a => 
+            a.nama.toLowerCase().includes(query) || 
+            a.id.toLowerCase().includes(query)
+        );
+        
+        if (filtered.length === 0) {
+            hasilDiv.classList.remove('hidden');
+            hasilDiv.innerHTML = `
+                <div class="p-3 text-center text-slate-400 text-sm">
+                    <i class="fa-solid fa-user-slash mr-2"></i>
+                    Anggota tidak ditemukan
+                </div>`;
+            return;
+        }
+        
+        hasilDiv.classList.remove('hidden');
+        hasilDiv.innerHTML = '';
+        
+        filtered.forEach(a => {
+            const div = document.createElement('div');
+            div.className = 'p-3 hover:bg-emerald-50 cursor-pointer border-b border-slate-100 last:border-0 transition flex justify-between items-center';
+            div.innerHTML = `
+                <div>
+                    <div class="font-semibold text-slate-800">${a.nama}</div>
+                    <div class="text-xs text-slate-500">
+                        <span class="font-mono">${a.id}</span>
+                        <span class="ml-2 bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded">${a.kelas || a.alamat || '-'}</span>
+                    </div>
+                </div>
+                <div class="text-xs font-bold text-emerald-600">${formatRupiah(Number(a.saldo || 0))}</div>
+            `;
+            div.onclick = () => pilihAnggota(a);
+            hasilDiv.appendChild(div);
+        });
+    }
+
+    function pilihAnggota(anggota) {
+        anggotaTerpilih = anggota;
+        document.getElementById('kasir-anggota-id').value = anggota.id;
+        document.getElementById('kasir-cari-anggota').value = anggota.nama;
+        
+        const terpilihDiv = document.getElementById('anggota-terpilih');
+        terpilihDiv.classList.remove('hidden');
+        document.getElementById('anggota-terpilih-nama').textContent = anggota.nama;
+        document.getElementById('anggota-terpilih-id').textContent = `ID: ${anggota.id}`;
+        document.getElementById('anggota-terpilih-kelas').textContent = `Kelas: ${anggota.kelas || anggota.alamat || '-'}`;
+        
+        document.getElementById('hasil-cari-anggota').classList.add('hidden');
+        document.getElementById('hasil-cari-anggota').innerHTML = '';
+        
+        showToast(`Anggota dipilih: ${anggota.nama} (${anggota.kelas || anggota.alamat || 'Tanpa Kelas'})`);
+    }
+
+    function batalPilihAnggota() {
+        anggotaTerpilih = null;
+        document.getElementById('kasir-anggota-id').value = '';
+        document.getElementById('kasir-cari-anggota').value = '';
+        document.getElementById('anggota-terpilih').classList.add('hidden');
     }
 
     // ============================================================
@@ -787,15 +920,12 @@
     // MERGE DATA CLOUD-LOCAL
     // ============================================================
     function mergeDataCloudLocal(localList, cloudList, type) {
-        // Filter data cloud yang tidak terhapus
         const activeCloud = (cloudList || []).filter(item => {
             return !isDeleted(item.id, type);
         });
         
-        // Buat map dari data cloud yang aktif
         const mergedMap = new Map(activeCloud.map(item => [item.id, { ...item }]));
         
-        // Tambahkan data lokal
         (localList || []).forEach(localItem => {
             if (isDeleted(localItem.id, type)) return;
             
@@ -837,7 +967,6 @@
         const kasirData = state.kasir || [];
         const kasirOptions = [{ id: '', nama: 'Semua Kasir' }, ...kasirData.map(k => ({ id: k.nama || k, nama: k.nama || k }))];
         
-        populateSelect('kasir-anggota', state.anggota, 'id', '{nama}');
         populateSelect('filter-laporan-kasir', kasirOptions, 'id', '{nama}');
         renderLoginKasir();
         
@@ -905,6 +1034,7 @@
             tr.innerHTML = `
                 <td class="p-4 font-mono font-medium text-xs text-indigo-600">${a.id}</td>
                 <td class="p-4 font-semibold text-slate-800">${a.nama}</td>
+                <td class="p-4 font-semibold text-indigo-600">${a.kelas || a.alamat || '-'}</td>
                 <td class="p-4 text-slate-500">${a.alamat || '-'}</td>
                 <td class="p-4 text-slate-500">${a.no_telp || '-'}</td>
                 <td class="p-4 text-right font-bold text-emerald-700">${formatRupiah(Number(a.saldo || 0))}</td>
@@ -924,6 +1054,7 @@
             document.getElementById('modal-anggota-title').innerText = 'Edit Anggota';
             document.getElementById('modal-anggota-id').value = a.id;
             document.getElementById('modal-anggota-nama').value = a.nama;
+            document.getElementById('modal-anggota-kelas').value = a.kelas || a.alamat || '';
             document.getElementById('modal-anggota-alamat').value = a.alamat || '';
             document.getElementById('modal-anggota-telp').value = a.no_telp || '';
             document.getElementById('modal-anggota-saldo').value = Number(a.saldo || 0);
@@ -931,6 +1062,7 @@
             document.getElementById('modal-anggota-title').innerText = 'Tambah Anggota';
             document.getElementById('modal-anggota-id').value = '';
             document.getElementById('modal-anggota-nama').value = '';
+            document.getElementById('modal-anggota-kelas').value = '';
             document.getElementById('modal-anggota-alamat').value = '';
             document.getElementById('modal-anggota-telp').value = '';
             document.getElementById('modal-anggota-saldo').value = 0;
@@ -944,17 +1076,21 @@
     function simpanAnggota() {
         const id = document.getElementById('modal-anggota-id').value;
         const nama = document.getElementById('modal-anggota-nama').value.trim();
+        const kelas = document.getElementById('modal-anggota-kelas').value.trim();
         const alamat = document.getElementById('modal-anggota-alamat').value.trim();
         const telp = document.getElementById('modal-anggota-telp').value.trim();
         const saldo = parseFloat(document.getElementById('modal-anggota-saldo').value) || 0;
         
         if (!nama) { showToast('Nama harus diisi', 'error'); return; }
         
+        const kelasFinal = kelas || alamat || '-';
+        
         if (id) {
             const a = state.anggota.find(x => x.id === id);
             if (a) { 
                 a.nama = nama; 
-                a.alamat = alamat; 
+                a.kelas = kelasFinal;
+                a.alamat = alamat || kelasFinal;
                 a.no_telp = telp; 
                 a.saldo = saldo; 
                 a._dirty = true; 
@@ -962,7 +1098,15 @@
             showToast('Data Anggota diperbarui');
         } else {
             const newId = generateId('A');
-            state.anggota.push({ id: newId, nama, alamat, no_telp: telp, saldo, _dirty: true });
+            state.anggota.push({ 
+                id: newId, 
+                nama, 
+                kelas: kelasFinal,
+                alamat: alamat || kelasFinal,
+                no_telp: telp, 
+                saldo, 
+                _dirty: true 
+            });
             showToast('Anggota baru berhasil ditambahkan');
         }
         
@@ -1082,10 +1226,18 @@
     // KASIR & TRANSAKSI PROSES
     // ============================================================
     function loadKasir() {
-        populateSelect('kasir-anggota', state.anggota, 'id', '{nama}');
+        batalPilihAnggota();
         filterKategori('Semua');
         renderCart();
         renderTodayTransactions();
+        
+        document.addEventListener('click', function(e) {
+            const hasilDiv = document.getElementById('hasil-cari-anggota');
+            const input = document.getElementById('kasir-cari-anggota');
+            if (hasilDiv && input && !hasilDiv.contains(e.target) && e.target !== input) {
+                hasilDiv.classList.add('hidden');
+            }
+        });
     }
 
     function filterKategori(cat) {
@@ -1238,8 +1390,8 @@
         if (!currentKasir) { showToast('Login kasir terlebih dahulu', 'error'); return; }
         if (cart.length === 0) { showToast('Keranjang belanja kosong', 'error'); return; }
         
-        const anggotaId = document.getElementById('kasir-anggota').value;
-        if (!anggotaId) { showToast('Pilih anggota terlebih dahulu', 'error'); return; }
+        const anggotaId = document.getElementById('kasir-anggota-id').value;
+        if (!anggotaId) { showToast('Pilih anggota terlebih dahulu! Cari dan klik nama anggota.', 'error'); return; }
         
         const anggota = state.anggota.find(a => a.id === anggotaId);
         if (!anggota) { showToast('Anggota tidak valid', 'error'); return; }
@@ -1285,15 +1437,17 @@
         
         state.transaksi.push(newTrans);
         cart = [];
+        batalPilihAnggota();
         
         saveState();
         renderAll();
         loadKasir();
         
+        const kelasInfo = anggota.kelas || anggota.alamat || 'Tanpa Kelas';
         if (metodeBayar === 'Saldo') {
-            showToast('Transaksi Berhasil! Saldo koperasi milik anggota telah dipotong.');
+            showToast(`✅ Transaksi Berhasil! ${anggota.nama} (${kelasInfo}) - Saldo dipotong.`);
         } else {
-            showToast('Transaksi Berhasil! Pembayaran dilakukan menggunakan Tunai (Cash).');
+            showToast(`✅ Transaksi Berhasil! ${anggota.nama} (${kelasInfo}) - Pembayaran Tunai.`);
         }
         syncData();
     }
@@ -1319,7 +1473,7 @@
             div.className = 'p-3 bg-slate-50 border border-slate-100 rounded-xl space-y-1 shadow-sm';
             div.innerHTML = `
                 <div class="flex justify-between font-semibold text-xs">
-                    <span class="text-slate-800">${anggota ? anggota.nama : 'Non-anggota'}</span>
+                    <span class="text-slate-800">${anggota ? anggota.nama : 'Non-anggota'} ${anggota ? '(' + (anggota.kelas || anggota.alamat || '-') + ')' : ''}</span>
                     <span class="text-emerald-700 font-bold">${formatRupiah(Number(t.total))}</span>
                 </div>
                 <div class="flex justify-between text-[10px] text-slate-400">
@@ -1464,7 +1618,7 @@
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td class="p-4">${formatTanggal(t.tanggal)}</td>
-                <td class="p-4 font-semibold text-slate-800">${anggota ? anggota.nama : '-'}</td>
+                <td class="p-4 font-semibold text-slate-800">${anggota ? anggota.nama + ' (' + (anggota.kelas || anggota.alamat || '-') + ')' : '-'}</td>
                 <td class="p-4 text-slate-500">${t.kasir || 'Admin'}</td>
                 <td class="p-4">${metodeBadge}</td>
                 <td class="p-4 text-right font-bold text-emerald-700">${formatRupiah(total)}</td>
@@ -1533,7 +1687,7 @@
             fileName += `_${todayStr()}`;
         }
         
-        let csv = 'Tanggal,Anggota,Kasir,Metode Pembayaran,Total,Items\n';
+        let csv = 'Tanggal,Anggota,Kelas,Kasir,Metode Pembayaran,Total,Items\n';
         filtered.forEach(t => {
             const anggota = state.anggota.find(a => a.id === t.id_anggota);
             const metodeText = t.metode === 'Saldo' ? 'Saldo Koperasi' : 'Tunai';
@@ -1544,7 +1698,8 @@
                 items = [];
             }
             const itemString = items.map(i => i.nama + ' x' + i.qty).join('; ');
-            csv += `${formatTanggal(t.tanggal)},${anggota ? anggota.nama : '-'},${t.kasir || 'Admin'},${metodeText},${Number(t.total)},"${itemString}"\n`;
+            const kelas = anggota ? (anggota.kelas || anggota.alamat || '-') : '-';
+            csv += `${formatTanggal(t.tanggal)},${anggota ? anggota.nama : '-'},${kelas},${t.kasir || 'Admin'},${metodeText},${Number(t.total)},"${itemString}"\n`;
         });
         
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -1588,7 +1743,6 @@
                 throw new Error(cloudData.message || "Error saat membaca database.");
             }
 
-            // Konversi format tanggal dari cloud
             if (cloudData.transaksi) {
                 cloudData.transaksi = cloudData.transaksi.map(t => {
                     if (t.tanggal && t.tanggal.includes('T')) {
@@ -1603,19 +1757,14 @@
                 });
             }
 
-            // Update deletedIds dari cloud
             if (cloudData.deletedIds && Array.isArray(cloudData.deletedIds)) {
-                // Merge deletedIds dari cloud dan lokal
                 const cloudDeleted = cloudData.deletedIds.map(item => 
                     typeof item === 'string' ? item : `${item.type || 'unknown'}_${item.id || item}`
                 );
-                
-                // Gabungkan dengan deletedIds lokal
                 const allDeleted = [...new Set([...state.deletedIds, ...cloudDeleted])];
                 state.deletedIds = allDeleted;
             }
 
-            // Merge data
             const mergedAnggota = mergeDataCloudLocal(state.anggota, cloudData.anggota, 'anggota');
             const mergedBarang = mergeDataCloudLocal(state.barang, cloudData.barang, 'barang');
             const mergedTransaksi = mergeDataCloudLocal(state.transaksi, cloudData.transaksi, 'transaksi');
@@ -1626,9 +1775,9 @@
             state.transaksi = mergedTransaksi;
             state.kasir = mergedKasir;
             
-            // Cleanup
             state.anggota.forEach(a => {
                 a.saldo = Number(a.saldo || 0);
+                a.kelas = a.kelas || a.alamat || '-';
                 delete a._dirty;
             });
             
@@ -1649,7 +1798,6 @@
             saveState();
             renderAll();
 
-            // Kirim data ke cloud
             const payload = { 
                 anggota: state.anggota, 
                 barang: state.barang, 
