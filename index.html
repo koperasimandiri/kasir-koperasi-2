@@ -328,7 +328,8 @@
                                     <span id="cart-total" class="font-extrabold text-2xl text-emerald-600">Rp 0</span>
                                 </div>
                                 <button onclick="bayarTransaksi()" class="w-full py-3 bg-indigo-650 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold transition shadow-lg shadow-indigo-650/15">
-                                    <i class="fa-solid fa-check mr-2"></i>Selesaikan & Bayar                                </button>
+                                    <i class="fa-solid fa-check mr-2"></i>Selesaikan & Bayar
+                                </button>
                             </div>
                         </div>
 
@@ -580,7 +581,7 @@
     }
 
     // ============================================================
-    // LOAD & SAVE STATE
+    // LOAD & SAVE STATE (PERBAIKAN - TIDAK ADA DATA DEFAULT)
     // ============================================================
     function loadState() {
         const saved = localStorage.getItem("koperasi_state");
@@ -597,6 +598,7 @@
             }
         }
         
+        // Pastikan format kasir konsisten
         state.kasir = state.kasir.map(k => {
             if (typeof k === 'string') {
                 return { nama: k, password: "123" };
@@ -604,22 +606,17 @@
             return { nama: k.nama || k, password: k.password || "123" };
         });
         
-        if (state.anggota.length === 0 && state.barang.length === 0 && state.kasir.length === 0) {
-            state.anggota = [
-                { id: "A001", nama: "Budi Santoso", alamat: "Jl. Merdeka 10", no_telp: "08123456789", saldo: 500000, kelas: "7A" },
-                { id: "A002", nama: "Siti Aminah", alamat: "Jl. Sudirman 5", no_telp: "08129876543", saldo: 750000, kelas: "8B" },
-                { id: "A003", nama: "Ahmad Rizki", alamat: "Jl. Diponegoro 3", no_telp: "08123456788", saldo: 300000, kelas: "9C" }
-            ];
-            state.barang = [
-                { id: "B001", nama: "Beras 5kg", harga: 75000, stok: 50, kategori: "Makanan/Minuman" },
-                { id: "B002", nama: "Minyak Goreng 2L", harga: 28000, stok: 30, kategori: "Makanan/Minuman" },
-                { id: "B003", nama: "Gula Pasir 1kg", harga: 18000, stok: 40, kategori: "Makanan/Minuman" }
-            ];
+        // HANYA buat data default jika SEMUA data kosong (termasuk kasir)
+        // DAN tidak ada data di localStorage
+        if (!saved || (state.anggota.length === 0 && state.barang.length === 0 && state.kasir.length === 0)) {
+            // Data default KOSONG - hanya Admin
+            state.anggota = [];
+            state.barang = [];
             state.kasir = [
-                { nama: "Admin", password: "123" },
-                { nama: "Budi", password: "123" },
-                { nama: "Siti", password: "123" }
+                { nama: "Admin", password: "123" }
             ];
+            state.transaksi = [];
+            state.deletedIds = [];
             saveState();
         }
     }
