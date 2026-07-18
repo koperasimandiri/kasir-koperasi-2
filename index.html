@@ -223,9 +223,8 @@
                     
                     <!-- AREA PEMILIHAN BARANG (KATALOG KARTU) -->
                     <div class="lg:col-span-2 space-y-4">
-                        <!-- PANEL FILTER & SEARCH (PERSIS SEPERTI GAMBAR CONTOH) -->
+                        <!-- PANEL FILTER & SEARCH -->
                         <div class="bg-white p-5 rounded-2xl border border-slate-150 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            <!-- SEARCH FIELD -->
                             <div class="relative flex-1 max-w-md">
                                 <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
                                     <i class="fa-solid fa-magnifying-glass"></i>
@@ -233,7 +232,6 @@
                                 <input type="text" id="search-product" oninput="renderProductCards()" placeholder="Cari produk..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all">
                             </div>
                             
-                            <!-- CATEGORY FILTER PILLS -->
                             <div class="flex flex-wrap gap-2 items-center" id="category-pills">
                                 <button onclick="filterKategori('Semua')" class="pill-btn px-4 py-2 rounded-xl text-xs font-semibold transition bg-emerald-600 text-white" data-cat="Semua">Semua</button>
                                 <button onclick="filterKategori('Makanan/Minuman')" class="pill-btn px-4 py-2 rounded-xl text-xs font-semibold transition bg-slate-100 text-slate-600 hover:bg-slate-200" data-cat="Makanan/Minuman">Makanan/Minuman</button>
@@ -244,10 +242,7 @@
                             </div>
                         </div>
 
-                        <!-- GRID PRODUK KARTU -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" id="product-grid">
-                            <!-- Kartu produk di-render dinamis oleh JavaScript -->
-                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" id="product-grid"></div>
                     </div>
 
                     <!-- AREA PEMILIHAN ANGGOTA & KERANJANG BELANJA -->
@@ -255,18 +250,13 @@
                         <div class="bg-white p-5 rounded-2xl border border-slate-150 shadow-sm flex flex-col">
                             <h4 class="font-bold text-slate-850 mb-3 flex items-center gap-2 border-b pb-2"><i class="fa-solid fa-basket-shopping text-emerald-555"></i> Keranjang Belanja</h4>
                             
-                            <!-- PILIH ANGGOTA -->
                             <div class="mb-4">
                                 <label class="block text-xs font-bold text-slate-500 mb-1">Anggota Koperasi</label>
                                 <select id="kasir-anggota" class="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"></select>
                             </div>
 
-                            <!-- DAFTAR BELANJA -->
-                            <div id="cart-items" class="space-y-2 max-h-60 overflow-y-auto divide-y divide-slate-100 flex-1 min-h-[150px]">
-                                <!-- Produk terpilih di-render disini -->
-                            </div>
+                            <div id="cart-items" class="space-y-2 max-h-60 overflow-y-auto divide-y divide-slate-100 flex-1 min-h-[150px]"></div>
                             
-                            <!-- PILIHAN METODE PEMBAYARAN -->
                             <div class="mt-4 pt-4 border-t border-slate-100 space-y-3">
                                 <div>
                                     <label class="block text-xs font-bold text-slate-500 mb-1">Metode Pembayaran</label>
@@ -277,7 +267,6 @@
                                 </div>
                             </div>
 
-                            <!-- TOTAL DAN BAYAR -->
                             <div class="border-t border-slate-100 pt-4 mt-4 space-y-3">
                                 <div class="flex justify-between items-center">
                                     <span class="font-semibold text-slate-500 text-sm">Total Belanja:</span>
@@ -289,7 +278,6 @@
                             </div>
                         </div>
 
-                        <!-- TRANSAKSI HARI INI -->
                         <div class="bg-white p-5 rounded-2xl border border-slate-150 shadow-sm">
                             <h4 class="font-bold text-slate-800 mb-3 flex items-center gap-2"><i class="fa-solid fa-history text-slate-400"></i> Transaksi Hari Ini</h4>
                             <div id="today-transactions" class="space-y-3 max-h-56 overflow-y-auto text-sm"></div>
@@ -306,12 +294,19 @@
                     </div>
                     <div class="flex flex-wrap gap-2 w-full sm:w-auto">
                         <select id="filter-laporan-kasir" class="p-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"></select>
-                        <input type="date" id="filter-laporan-tgl" class="p-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                        <!-- RENTANG TANGGAL -->
+                        <div class="flex items-center gap-1">
+                            <input type="date" id="filter-laporan-tgl-awal" class="p-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Dari" />
+                            <span class="text-slate-400 text-xs">s/d</span>
+                            <input type="date" id="filter-laporan-tgl-akhir" class="p-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Sampai" />
+                        </div>
                         <button onclick="renderLaporan()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-semibold transition"><i class="fa-solid fa-filter mr-2"></i>Filter</button>
                         <button onclick="exportLaporanCSV()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-sm font-semibold transition"><i class="fa-solid fa-file-csv mr-2"></i>Ekspor CSV</button>
+                        <button onclick="resetFilterLaporan()" class="px-4 py-2 bg-slate-500 hover:bg-slate-600 text-white rounded-lg text-sm font-semibold transition"><i class="fa-solid fa-undo mr-2"></i>Reset</button>
                     </div>
                 </div>
                 <div class="bg-white rounded-2xl border border-slate-150 shadow-sm overflow-hidden p-4">
+                    <div id="laporan-info" class="text-xs text-slate-500 mb-3"></div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-sm">
                             <thead class="bg-slate-50 border-b border-slate-100 text-slate-600">
@@ -327,6 +322,7 @@
                             <tbody id="table-laporan" class="divide-y divide-slate-100 text-slate-700"></tbody>
                         </table>
                     </div>
+                    <div id="laporan-total" class="mt-4 pt-3 border-t border-slate-200 text-right font-bold text-lg text-emerald-700"></div>
                 </div>
             </section>
 
@@ -468,6 +464,40 @@
     let chart = null;
     let isSyncing = false;
 
+    // ============================================================
+    // FUNGSI FORMAT TANGGAL
+    // ============================================================
+    function formatTanggal(tanggal) {
+        if (typeof tanggal === 'string' && tanggal.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            return tanggal;
+        }
+        
+        try {
+            const date = new Date(tanggal);
+            if (!isNaN(date.getTime())) {
+                return date.toISOString().split('T')[0];
+            }
+        } catch(e) {}
+        
+        return tanggal;
+    }
+    
+    function todayStr() { 
+        return new Date().toISOString().split('T')[0]; 
+    }
+    
+    function isDateInRange(tanggal, tanggalAwal, tanggalAkhir) {
+        const tgl = formatTanggal(tanggal);
+        
+        if (tanggalAwal && tgl < tanggalAwal) return false;
+        if (tanggalAkhir && tgl > tanggalAkhir) return false;
+        
+        return true;
+    }
+
+    // ============================================================
+    // LOAD & SAVE STATE
+    // ============================================================
     function loadState() {
         const saved = localStorage.getItem("koperasi_state");
         if (saved) {
@@ -483,7 +513,6 @@
             }
         }
         
-        // Pastikan format kasir konsisten
         state.kasir = state.kasir.map(k => {
             if (typeof k === 'string') {
                 return { nama: k, password: "123" };
@@ -528,10 +557,6 @@
     function generateId(prefix) { 
         return prefix + String(Date.now()).slice(-6); 
     }
-    
-    function todayStr() { 
-        return new Date().toISOString().split('T')[0]; 
-    }
 
     function showToast(msg, type = "success") {
         const container = document.getElementById("toast-container");
@@ -548,7 +573,6 @@
         }, 4000);
     }
 
-    // MODAL KONFIRMASI KUSTOM
     function showCustomConfirm(message, title = "Konfirmasi") {
         return new Promise((resolve) => {
             const modal = document.getElementById('modal-confirm');
@@ -704,32 +728,44 @@
     }
 
     // ============================================================
-    // FUNGSI BARU: SETUP FILTER LAPORAN
+    // SETUP FILTER LAPORAN
     // ============================================================
     function setupLaporanFilters() {
         const filterKasir = document.getElementById('filter-laporan-kasir');
-        const filterTgl = document.getElementById('filter-laporan-tgl');
+        const filterTglAwal = document.getElementById('filter-laporan-tgl-awal');
+        const filterTglAkhir = document.getElementById('filter-laporan-tgl-akhir');
         
-        if (!filterKasir || !filterTgl) return;
+        if (!filterKasir || !filterTglAwal || !filterTglAkhir) return;
         
-        // Hapus event listener lama dengan clone
         const newFilterKasir = filterKasir.cloneNode(true);
-        const newFilterTgl = filterTgl.cloneNode(true);
-        filterKasir.parentNode.replaceChild(newFilterKasir, filterKasir);
-        filterTgl.parentNode.replaceChild(newFilterTgl, filterTgl);
+        const newFilterTglAwal = filterTglAwal.cloneNode(true);
+        const newFilterTglAkhir = filterTglAkhir.cloneNode(true);
         
-        // Tambahkan event listener baru
+        filterKasir.parentNode.replaceChild(newFilterKasir, filterKasir);
+        filterTglAwal.parentNode.replaceChild(newFilterTglAwal, filterTglAwal);
+        filterTglAkhir.parentNode.replaceChild(newFilterTglAkhir, filterTglAkhir);
+        
         newFilterKasir.addEventListener('change', renderLaporan);
-        newFilterTgl.addEventListener('change', renderLaporan);
+        newFilterTglAwal.addEventListener('change', renderLaporan);
+        newFilterTglAkhir.addEventListener('change', renderLaporan);
     }
 
+    function resetFilterLaporan() {
+        document.getElementById('filter-laporan-kasir').value = '';
+        document.getElementById('filter-laporan-tgl-awal').value = '';
+        document.getElementById('filter-laporan-tgl-akhir').value = '';
+        renderLaporan();
+    }
+
+    // ============================================================
+    // RENDER ALL
+    // ============================================================
     function renderAll() {
         renderAnggota();
         renderBarang();
         renderDashboard();
         renderLaporan();
         
-        // Pastikan data kasir dalam format yang benar
         const kasirData = state.kasir || [];
         const kasirOptions = [{ id: '', nama: 'Semua Kasir' }, ...kasirData.map(k => ({ id: k.nama || k, nama: k.nama || k }))];
         
@@ -975,7 +1011,7 @@
     }
 
     // ============================================================
-    // KASIR & TRANSAKSI PROSES (GRID CART VIEW)
+    // KASIR & TRANSAKSI PROSES
     // ============================================================
     function loadKasir() {
         populateSelect('kasir-anggota', state.anggota, 'id', '{nama}');
@@ -1198,7 +1234,10 @@
         const container = document.getElementById('today-transactions');
         container.innerHTML = '';
         const today = todayStr();
-        const todayTrans = state.transaksi.filter(t => t.tanggal === today);
+        const todayTrans = state.transaksi.filter(t => {
+            const tglTransaksi = formatTanggal(t.tanggal);
+            return tglTransaksi === today;
+        });
         
         if (todayTrans.length === 0) {
             container.innerHTML = '<p class="text-slate-400 text-sm italic text-center py-4">Belum ada transaksi hari ini</p>';
@@ -1238,7 +1277,10 @@
             const dateStr = d.toISOString().split('T')[0];
             labels.push(dateStr);
             const total = state.transaksi
-                .filter(t => t.tanggal === dateStr)
+                .filter(t => {
+                    const tglTransaksi = formatTanggal(t.tanggal);
+                    return tglTransaksi === dateStr;
+                })
                 .reduce((sum, t) => sum + Number(t.total), 0);
             data.push(total);
         }
@@ -1273,20 +1315,24 @@
     }
 
     // ============================================================
-    // LAPORAN & CSV DOWNLOAD
+    // LAPORAN (DENGAN RENTANG TANGGAL)
     // ============================================================
     function renderLaporan() {
         const filterKasir = document.getElementById('filter-laporan-kasir');
-        const filterTgl = document.getElementById('filter-laporan-tgl');
+        const filterTglAwal = document.getElementById('filter-laporan-tgl-awal');
+        const filterTglAkhir = document.getElementById('filter-laporan-tgl-akhir');
         
-        if (!filterKasir || !filterTgl) {
+        if (!filterKasir || !filterTglAwal || !filterTglAkhir) {
             console.warn('Filter elemen tidak ditemukan');
             return;
         }
         
         const kasirValue = filterKasir.value;
-        const tglValue = filterTgl.value;
+        const tglAwal = filterTglAwal.value;
+        const tglAkhir = filterTglAkhir.value;
         const tbody = document.getElementById('table-laporan');
+        const infoDiv = document.getElementById('laporan-info');
+        const totalDiv = document.getElementById('laporan-total');
         
         if (!tbody) {
             console.warn('Table laporan tidak ditemukan');
@@ -1301,16 +1347,35 @@
             filtered = filtered.filter(t => t.kasir === kasirValue);
         }
         
-        if (tglValue) {
-            filtered = filtered.filter(t => t.tanggal === tglValue);
+        if (tglAwal || tglAkhir) {
+            filtered = filtered.filter(t => {
+                const tglTransaksi = formatTanggal(t.tanggal);
+                return isDateInRange(tglTransaksi, tglAwal, tglAkhir);
+            });
+        }
+        
+        if (filtered.length > 0) {
+            const dates = filtered.map(t => formatTanggal(t.tanggal)).sort();
+            const tglTerkecil = dates[0];
+            const tglTerbesar = dates[dates.length - 1];
+            infoDiv.innerHTML = `Menampilkan <strong>${filtered.length}</strong> transaksi dari <strong>${tglTerkecil}</strong> sampai <strong>${tglTerbesar}</strong>`;
+        } else {
+            infoDiv.innerHTML = 'Tidak ada transaksi ditemukan untuk rentang tanggal yang dipilih';
         }
         
         if (filtered.length === 0) {
             tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-400">Tidak ada transaksi ditemukan</td></tr>';
+            totalDiv.innerHTML = '';
             return;
         }
         
-        filtered.sort((a, b) => b.tanggal.localeCompare(a.tanggal));
+        filtered.sort((a, b) => {
+            const dateA = new Date(a.tanggal);
+            const dateB = new Date(b.tanggal);
+            return dateB - dateA;
+        });
+        
+        let grandTotal = 0;
         
         filtered.forEach(t => {
             const anggota = state.anggota.find(a => a.id === t.id_anggota);
@@ -1325,30 +1390,57 @@
                 items = [];
             }
             
+            const total = Number(t.total) || 0;
+            grandTotal += total;
+            
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td class="p-4">${t.tanggal}</td>
+                <td class="p-4">${formatTanggal(t.tanggal)}</td>
                 <td class="p-4 font-semibold text-slate-800">${anggota ? anggota.nama : '-'}</td>
                 <td class="p-4 text-slate-500">${t.kasir || 'Admin'}</td>
                 <td class="p-4">${metodeBadge}</td>
-                <td class="p-4 text-right font-bold text-emerald-700">${formatRupiah(Number(t.total))}</td>
+                <td class="p-4 text-right font-bold text-emerald-700">${formatRupiah(total)}</td>
                 <td class="p-4 text-xs text-slate-500 font-mono">${items.map(i => i.nama + ' (x' + i.qty + ')').join(', ')}</td>`;
             tbody.appendChild(tr);
         });
+        
+        totalDiv.innerHTML = `Total Keseluruhan: ${formatRupiah(grandTotal)}`;
     }
 
     function exportLaporanCSV() {
         const filterKasir = document.getElementById('filter-laporan-kasir');
-        const filterTgl = document.getElementById('filter-laporan-tgl');
+        const filterTglAwal = document.getElementById('filter-laporan-tgl-awal');
+        const filterTglAkhir = document.getElementById('filter-laporan-tgl-akhir');
         
         const kasirValue = filterKasir ? filterKasir.value : '';
-        const tglValue = filterTgl ? filterTgl.value : '';
+        const tglAwal = filterTglAwal ? filterTglAwal.value : '';
+        const tglAkhir = filterTglAkhir ? filterTglAkhir.value : '';
         
         let filtered = state.transaksi || [];
         if (kasirValue) filtered = filtered.filter(t => t.kasir === kasirValue);
-        if (tglValue) filtered = filtered.filter(t => t.tanggal === tglValue);
         
-        if (filtered.length === 0) { showToast('Tidak ada data untuk diekspor', 'error'); return; }
+        if (tglAwal || tglAkhir) {
+            filtered = filtered.filter(t => {
+                const tglTransaksi = formatTanggal(t.tanggal);
+                return isDateInRange(tglTransaksi, tglAwal, tglAkhir);
+            });
+        }
+        
+        if (filtered.length === 0) { 
+            showToast('Tidak ada data untuk diekspor', 'error'); 
+            return; 
+        }
+        
+        let fileName = 'laporan_koperasi';
+        if (tglAwal && tglAkhir) {
+            fileName += `_${tglAwal}_sampai_${tglAkhir}`;
+        } else if (tglAwal) {
+            fileName += `_dari_${tglAwal}`;
+        } else if (tglAkhir) {
+            fileName += `_sampai_${tglAkhir}`;
+        } else {
+            fileName += `_${todayStr()}`;
+        }
         
         let csv = 'Tanggal,Anggota,Kasir,Metode Pembayaran,Total,Items\n';
         filtered.forEach(t => {
@@ -1361,19 +1453,19 @@
                 items = [];
             }
             const itemString = items.map(i => i.nama + ' x' + i.qty).join('; ');
-            csv += `${t.tanggal},${anggota ? anggota.nama : '-'},${t.kasir || 'Admin'},${metodeText},${Number(t.total)},"${itemString}"\n`;
+            csv += `${formatTanggal(t.tanggal)},${anggota ? anggota.nama : '-'},${t.kasir || 'Admin'},${metodeText},${Number(t.total)},"${itemString}"\n`;
         });
         
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = `laporan_koperasi_${todayStr()}.csv`;
+        link.download = `${fileName}.csv`;
         link.click();
         showToast('Laporan CSV berhasil diunduh');
     }
 
     // ============================================================
-    // GOOGLE SHEETS DUAL-WAY SINKRONISASI & MERGE CERDAS
+    // GOOGLE SHEETS DUAL-WAY SINKRONISASI
     // ============================================================
     function showLoading(show) {
         const spinners = document.querySelectorAll('#sync-spinner, #sync-spinner-header');
@@ -1438,6 +1530,21 @@
                 throw new Error(cloudData.message || "Error saat membaca database.");
             }
 
+            // Konversi format tanggal dari cloud
+            if (cloudData.transaksi) {
+                cloudData.transaksi = cloudData.transaksi.map(t => {
+                    if (t.tanggal && t.tanggal.includes('T')) {
+                        try {
+                            const date = new Date(t.tanggal);
+                            if (!isNaN(date.getTime())) {
+                                t.tanggal = date.toISOString().split('T')[0];
+                            }
+                        } catch(e) {}
+                    }
+                    return t;
+                });
+            }
+
             const mergedAnggota = mergeDataCloudLocal(state.anggota, cloudData.anggota, state.deletedIds, 'id');
             const mergedBarang = mergeDataCloudLocal(state.barang, cloudData.barang, state.deletedIds, 'id');
             const mergedTransaksi = mergeDataCloudLocal(state.transaksi, cloudData.transaksi, state.deletedIds, 'id');
@@ -1454,7 +1561,17 @@
                 b.stok = Number(b.stok || 0);
                 b.kategori = b.kategori || "Makanan/Minuman";
             });
-            state.transaksi.forEach(t => t.total = Number(t.total || 0));
+            state.transaksi.forEach(t => {
+                t.total = Number(t.total || 0);
+                if (t.tanggal && t.tanggal.includes('T')) {
+                    try {
+                        const date = new Date(t.tanggal);
+                        if (!isNaN(date.getTime())) {
+                            t.tanggal = date.toISOString().split('T')[0];
+                        }
+                    } catch(e) {}
+                }
+            });
 
             state.anggota.forEach(a => delete a._dirty);
             state.barang.forEach(b => delete b._dirty);
@@ -1524,9 +1641,17 @@
             document.getElementById('sidebar-menu').classList.toggle('hidden');
         });
         
-        const tglFilter = document.getElementById('filter-laporan-tgl');
-        if (tglFilter) {
-            tglFilter.value = todayStr();
+        const tglAwal = document.getElementById('filter-laporan-tgl-awal');
+        const tglAkhir = document.getElementById('filter-laporan-tgl-akhir');
+        if (tglAwal && tglAkhir) {
+            const today = new Date();
+            const weekAgo = new Date(today);
+            weekAgo.setDate(today.getDate() - 7);
+            
+            tglAkhir.value = today.toISOString().split('T')[0];
+            tglAwal.value = weekAgo.toISOString().split('T')[0];
+            
+            setTimeout(renderLaporan, 500);
         }
 
         setTimeout(() => {
